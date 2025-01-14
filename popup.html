@@ -1,255 +1,269 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-<head>
-  <meta charset="UTF-8">
-  <style>
-    :root {
-      --bg-primary: #ffffff;
-      --bg-secondary: #f8f9fa;
-      --text-primary: #333333;
-      --text-secondary: #666666;
-      --border-color: #eeeeee;
-    }
+  <head>
+    <meta charset="UTF-8" />
+    <style>
+      :root {
+        --bg-primary: #ffffff;
+        --bg-secondary: #f8f9fa;
+        --text-primary: #333333;
+        --text-secondary: #666666;
+        --border-color: #eeeeee;
+      }
 
-    [data-theme="dark"] {
-      --bg-primary: #1a1a1a;
-      --bg-secondary: #2d2d2d;
-      --text-primary: #ffffff;
-      --text-secondary: #cccccc;
-      --border-color: #404040;
-    }
+      [data-theme='dark'] {
+        --bg-primary: #1a1a1a;
+        --bg-secondary: #2d2d2d;
+        --text-primary: #ffffff;
+        --text-secondary: #cccccc;
+        --border-color: #404040;
+      }
 
-    body {
-      width: 350px;
-      padding: 16px;
-      font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      color: var(--text-primary);
-      background: var(--bg-primary);
-    }
+      body {
+        width: 350px;
+        padding: 16px;
+        font-family: -apple-system, system-ui, BlinkMacSystemFont, 'Segoe UI', Roboto,
+          'Helvetica Neue', Arial, sans-serif;
+        color: var(--text-primary);
+        background: var(--bg-primary);
+      }
 
-    .container {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
+      .container {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
 
-    .header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding-bottom: 8px;
-      border-bottom: 1px solid var(--border-color);
-    }
+      .header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--border-color);
+      }
 
-    .header h1 {
-      margin: 0;
-      font-size: 18px;
-      font-weight: 600;
-    }
+      .header h1 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 600;
+      }
 
-    .toggle-switch {
-      position: relative;
-      display: inline-block;
-      width: 48px;
-      height: 24px;
-    }
+      .toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 48px;
+        height: 24px;
+      }
 
-    .toggle-switch input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
+      .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
 
-    .slider {
-      position: absolute;
-      cursor: pointer;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-color: #ccc;
-      transition: .4s;
-      border-radius: 24px;
-    }
+      .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: 0.4s;
+        border-radius: 24px;
+      }
 
-    .slider:before {
-      position: absolute;
-      content: "";
-      height: 18px;
-      width: 18px;
-      left: 3px;
-      bottom: 3px;
-      background-color: white;
-      transition: .4s;
-      border-radius: 50%;
-    }
+      .slider:before {
+        position: absolute;
+        content: '';
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: 0.4s;
+        border-radius: 50%;
+      }
 
-    input:checked + .slider {
-      background-color: #2196F3;
-    }
+      input:checked + .slider {
+        background-color: #2196f3;
+      }
 
-    input:checked + .slider:before {
-      transform: translateX(24px);
-    }
+      input:checked + .slider:before {
+        transform: translateX(24px);
+      }
 
-    .section {
-      background: var(--bg-secondary);
-      padding: 12px;
-      border-radius: 8px;
-    }
+      .section {
+        background: var(--bg-secondary);
+        padding: 12px;
+        border-radius: 8px;
+      }
 
-    .section-title {
-      font-size: 14px;
-      font-weight: 600;
-      margin: 0 0 8px 0;
-    }
+      .section-title {
+        font-size: 14px;
+        font-weight: 600;
+        margin: 0 0 8px 0;
+      }
 
-    .section-content {
-      font-size: 13px;
-    }
+      .section-content {
+        font-size: 13px;
+      }
 
-    button {
-      background: #2196F3;
-      color: white;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 13px;
-      transition: background 0.2s;
-    }
+      button {
+        background: #2196f3;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 13px;
+        transition: background 0.2s;
+      }
 
-    button:hover {
-      background: #1976D2;
-    }
+      button:hover {
+        background: #1976d2;
+      }
 
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 8px;
-    }
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+      }
 
-    .stat-card {
-      background: var(--bg-primary);
-      padding: 8px;
-      border-radius: 4px;
-      text-align: center;
-    }
+      .stat-card {
+        background: var(--bg-primary);
+        padding: 8px;
+        border-radius: 4px;
+        text-align: center;
+      }
 
-    .stat-value {
-      font-size: 18px;
-      font-weight: 600;
-      color: #2196F3;
-    }
+      .stat-value {
+        font-size: 18px;
+        font-weight: 600;
+        color: #2196f3;
+      }
 
-    .stat-label {
-      font-size: 12px;
-      color: var(--text-secondary);
-    }
+      .stat-label {
+        font-size: 12px;
+        color: var(--text-secondary);
+      }
 
-    .theme-toggle {
-      position: absolute;
-      top: 16px;
-      right: 16px;
-    }
+      .theme-toggle {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+      }
 
-    textarea {
-      background: var(--bg-secondary);
-      color: var(--text-primary);
-      border: 1px solid var(--border-color);
-      border-radius: 4px;
-      padding: 6px;
-      font-size: 13px;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1>Smart Search</h1>
-      <label class="toggle-switch">
-        <input type="checkbox" id="extensionToggle" checked>
-        <span class="slider"></span>
-      </label>
-    </div>
-
-    <div class="section">
-      <h2 class="section-title">Search Engines</h2>
-      <div class="section-content">
-        <button id="manageEngines">Manage Search Engines</button>
-      </div>
-    </div>
-
-    <div class="section">
-      <h2 class="section-title">Search History</h2>
-      <div class="section-content" id="searchHistory">
-        <em>No recent searches</em>
-      </div>
-    </div>
-
-    <div class="section">
-      <h2 class="section-title">Shortcuts</h2>
-      <div class="section-content">
-        <button id="manageShortcuts">Configure Shortcuts</button>
-      </div>
-    </div>
-
-    <div class="section">
-      <h2 class="section-title">Multi-tab Results</h2>
-      <div class="section-content">
+      textarea {
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        padding: 6px;
+        font-size: 13px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>Smart Search</h1>
         <label class="toggle-switch">
-          <input type="checkbox" id="multiTabToggle">
+          <input type="checkbox" id="extensionToggle" checked />
           <span class="slider"></span>
         </label>
       </div>
-    </div>
 
-    <div class="section">
-      <h2 class="section-title">Site List</h2>
-      <div class="section-content">
-        <button id="manageListBtn">Manage Whitelist/Blacklist</button>
-      </div>
-    </div>
-
-    <div class="section">
-      <h2 class="section-title">Statistics</h2>
-      <div class="stats">
-        <div class="stat-card">
-          <div class="stat-value" id="totalSearches">0</div>
-          <div class="stat-label">Searches</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value" id="timesSaved">0</div>
-          <div class="stat-label">Time Saved</div>
+      <div class="section">
+        <h2 class="section-title">Search Engines</h2>
+        <div class="section-content">
+          <button id="manageEngines">Manage Search Engines</button>
         </div>
       </div>
-    </div>
 
-    <div class="section">
-      <h2 class="section-title">Theme</h2>
-      <div class="section-content">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <span>Dark Mode</span>
+      <div class="section">
+        <h2 class="section-title">Search History</h2>
+        <div class="section-content" id="searchHistory">
+          <em>No recent searches</em>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2 class="section-title">Shortcuts</h2>
+        <div class="section-content">
+          <button id="manageShortcuts">Configure Shortcuts</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2 class="section-title">Multi-tab Results</h2>
+        <div class="section-content">
           <label class="toggle-switch">
-            <input type="checkbox" id="themeToggle">
+            <input type="checkbox" id="multiTabToggle" />
             <span class="slider"></span>
           </label>
         </div>
       </div>
+
+      <div class="section">
+        <h2 class="section-title">Site List</h2>
+        <div class="section-content">
+          <button id="manageListBtn">Manage Whitelist/Blacklist</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2 class="section-title">Statistics</h2>
+        <div class="stats">
+          <div class="stat-card">
+            <div class="stat-value" id="totalSearches">0</div>
+            <div class="stat-label">Searches</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="timesSaved">0</div>
+            <div class="stat-label">Time Saved</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2 class="section-title">Theme</h2>
+        <div class="section-content">
+          <div style="display: flex; justify-content: space-between; align-items: center">
+            <span>Dark Mode</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="themeToggle" />
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
     </div>
-  </div>
-  <div id="toastContainer" style="position: fixed; bottom: 16px; left: 16px; background: #333; color: #fff; padding: 8px 16px; border-radius: 4px; opacity: 0; transition: opacity 0.3s;"></div>
-  <div id="editListSection" style="display: none;">
-    <h2>Edit Whitelist / Blacklist</h2>
-    <p>Whitelist (comma-separated)</p>
-    <textarea id="whitelistInput" rows="3" style="width: 100%;"></textarea>
-    <p>Blacklist (comma-separated)</p>
-    <textarea id="blacklistInput" rows="3" style="width: 100%;"></textarea>
-    <div style="margin-top: 8px;">
-      <button id="saveListBtn">Save</button>
-      <button id="backBtn">Back</button>
+    <div
+      id="toastContainer"
+      style="
+        position: fixed;
+        bottom: 16px;
+        left: 16px;
+        background: #333;
+        color: #fff;
+        padding: 8px 16px;
+        border-radius: 4px;
+        opacity: 0;
+        transition: opacity 0.3s;
+      "
+    ></div>
+    <div id="editListSection" style="display: none">
+      <h2>Edit Whitelist / Blacklist</h2>
+      <p>Whitelist (comma-separated)</p>
+      <textarea id="whitelistInput" rows="3" style="width: 100%"></textarea>
+      <p>Blacklist (comma-separated)</p>
+      <textarea id="blacklistInput" rows="3" style="width: 100%"></textarea>
+      <div style="margin-top: 8px">
+        <button id="saveListBtn">Save</button>
+        <button id="backBtn">Back</button>
+      </div>
     </div>
-  </div>
-  <script src="popup.js"></script>
-</body>
+    <script src="popup.js"></script>
+  </body>
 </html>

@@ -1,0 +1,38 @@
+{
+  "name": "ai-smart-search",
+  "version": "2.0.0",
+  "description": "Firefox extension that redirects questions to Perplexity AI",
+  "scripts": {
+    "build": "npm run lint && npm run clean && npm run copy && npm run zip",
+    "dev": "web-ext run --firefox=\"C:/Program Files/Firefox Developer Edition/firefox.exe\" --source-dir=./",
+    "dev:prod": "web-ext run --firefox=\"C:/Program Files/Zen Browser/zen.exe\" --source-dir=./",
+    "lint": "web-ext lint && eslint .",
+    "clean": "rimraf web-ext-artifacts dist/",
+    "copy": "node scripts/copy.js",
+    "zip": "web-ext build -s dist/",
+    "watch": "web-ext run --source-dir=./",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "eslint": "^8.50.0",
+    "eslint-config-prettier": "^9.0.0",
+    "prettier": "^3.0.3",
+    "rimraf": "^5.0.1",
+    "web-ext": "^8.3.0"
+  },
+  "webExt": {
+    "sourceDir": ".",
+    "artifactsDir": "web-ext-artifacts",
+    "build": {
+      "overwriteDest": true
+    },
+    "run": {
+      "startUrl": [
+        "https://www.google.com"
+      ],
+      "firefox": "firefox-developer-edition",
+      "browserConsole": false,
+      "devtools": false
+    }
+  }
+}
