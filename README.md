@@ -30,6 +30,9 @@ Transform your search experience with AI-powered answers. Smart Search automatic
 
 ![Coming Soon](https://img.shields.io/badge/Coming-Soon-yellow?style=for-the-badge&logo=google-chrome&logoColor=white)
 
+Help me get a Chrome WebStore license for $5 by pressing the Sponsor button. Thank you!
+Until then, you can build the extension and [Load the `dist` folder as unpacked](https://webkul.com/blog/how-to-install-the-unpacked-extension-in-chrome/) 
+
 ## 💻 Development
 
 ### Setup & Installation
@@ -40,13 +43,13 @@ First, clone the repository, then install the required dependencies:
 # Cloning the repository
 git clone https://github.com/JaggedGem/ai-smart-search.git
 cd ai-smart-search
+git checkout chrome
+git pull origin chrome
 
 # Installing dependencies
 npm install
 npm install -g web-ext
 ```
-
-Optional but recommended: Install [Firefox Developer Edition](https://www.mozilla.org/en-US/firefox/developer/)
 
 ### Development Scripts
 
@@ -55,14 +58,13 @@ The `package.json` contains several npm scripts for development:
 ```json
 {
   "scripts": {
-    "build": "npm run lint && npm run clean && npm run copy && npm run zip",
-    "dev": "web-ext run --firefox=\"PATH_TO_YOUR_FIREFOX\" --source-dir=./",
-    "dev:prod": "web-ext run --firefox=\"PATH_TO_YOUR_FIREFOX\" --source-dir=./",
-    "lint": "web-ext lint && eslint .",
+    "build": "npm run lint && npm run clean && npm run copy-chrome && npm run package",
+    "dev": "npm run copy-chrome && web-ext run --target=chromium --source-dir=./dist/",
+    "lint": "eslint . --fix",
     "clean": "rimraf web-ext-artifacts dist/",
-    "copy": "node scripts/copy.js",
-    "zip": "web-ext build -s dist/",
-    "watch": "web-ext run --source-dir=./",
+    "copy-chrome": "node scripts/copy-chrome.js",
+    "package": "web-ext build -s dist/ -a web-ext-artifacts -o",
+    "watch": "nodemon --watch src --ext js,json,html,css --exec \"npm run build\"",
     "format": "prettier --write ."
   }
 }
@@ -70,29 +72,19 @@ The `package.json` contains several npm scripts for development:
 
 #### Important Notes:
 
-1. **Firefox Path**: Update the `--firefox` paths in the `dev` and `dev:prod` scripts to match your Firefox installations:
-
-   ```json
-   "dev": "web-ext run --firefox=\"PATH_TO_YOUR_FIREFOX\" --source-dir=./",
-   "dev:prod": "web-ext run --firefox=\"PATH_TO_YOUR_FIREFOX\" --source-dir=./"
-   ```
-
-   Please note that if you are using Windows, you should still be using `/` (forward slashes) instead of `\` (backslashes) for the paths, spaces **ARE** allowed.
-
-2. **Build Process**:
+1. **Build Process**:
 
    - `npm run build` - Full build with linting
    - `npm run dev` - Development mode with Firefox Developer Edition(or any other Firefox based browser)
-   - `npm run dev:prod` - Test in production environment
    - `npm run format` - Format code using Prettier
 
-3. **Development Tools**:
+2. **Development Tools**:
 
    - ESLint for code quality (`npm run lint`)
    - Prettier for code formatting (`npm run format`)
-   - web-ext for Firefox extension development
+   - web-ext for Chrome extension development
 
-4. **File Structure**:
+3. **File Structure**:
    - Background script: `background.js`
    - Content script: `content.js`
    - Popup UI: `popup.html` and `popup.js`
