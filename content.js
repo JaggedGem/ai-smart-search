@@ -1,5 +1,5 @@
 // Add this at the top of content.js
-const storage = chrome.storage || browser.storage;
+const storage = chrome.storage.local;
 
 // Function to create Google search button
 function createGoogleButton(query) {
@@ -33,7 +33,7 @@ async function checkAndReplaceButton() {
     const url = window.location.href;
     if (!url.includes('perplexity.ai')) return;
 
-    const result = await storage.local.get('lastRedirect');
+    const result = await storage.get('lastRedirect');
     const lastRedirect = result.lastRedirect;
 
     // Fallback query from URL if none in lastRedirect
@@ -60,7 +60,7 @@ async function checkAndReplaceButton() {
         container.parentNode.replaceChild(googleButton, container);
 
         // Clear the redirect data
-        storage.local.remove('lastRedirect');
+        storage.remove('lastRedirect');
       }
     }
   } catch (error) {

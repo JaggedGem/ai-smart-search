@@ -23,9 +23,11 @@ Transform your search experience with AI-powered answers. Smart Search automatic
 ## 🚀 Installation
 
 ### Firefox
+
 [![Install for Firefox](https://img.shields.io/badge/Install%20for-Firefox-FF7139?style=for-the-badge&logo=firefox-browser&logoColor=white)](https://addons.mozilla.org/en-US/firefox/addon/ai-smart-search/)
 
 ### Chrome
+
 ![Coming Soon](https://img.shields.io/badge/Coming-Soon-yellow?style=for-the-badge&logo=google-chrome&logoColor=white)
 
 ## 💻 Development
@@ -43,7 +45,9 @@ cd ai-smart-search
 npm install
 npm install -g web-ext
 ```
+
 Optional but recommended: Install [Firefox Developer Edition](https://www.mozilla.org/en-US/firefox/developer/)
+
 ### Development Scripts
 
 The `package.json` contains several npm scripts for development:
@@ -67,19 +71,23 @@ The `package.json` contains several npm scripts for development:
 #### Important Notes:
 
 1. **Firefox Path**: Update the `--firefox` paths in the `dev` and `dev:prod` scripts to match your Firefox installations:
+
    ```json
    "dev": "web-ext run --firefox=\"PATH_TO_YOUR_FIREFOX\" --source-dir=./",
    "dev:prod": "web-ext run --firefox=\"PATH_TO_YOUR_FIREFOX\" --source-dir=./"
    ```
+
    Please note that if you are using Windows, you should still be using `/` (forward slashes) instead of `\` (backslashes) for the paths, spaces **ARE** allowed.
 
 2. **Build Process**:
+
    - `npm run build` - Full build with linting
    - `npm run dev` - Development mode with Firefox Developer Edition(or any other Firefox based browser)
    - `npm run dev:prod` - Test in production environment
    - `npm run format` - Format code using Prettier
 
 3. **Development Tools**:
+
    - ESLint for code quality (`npm run lint`)
    - Prettier for code formatting (`npm run format`)
    - web-ext for Firefox extension development
@@ -96,7 +104,9 @@ Run the build script to create a production-ready extension:
 ```sh
 npm run build
 ```
+
 This will:
+
 1. Lint the code
 2. Clean previous builds
 3. Create a ZIP file in `web-ext-artifacts`

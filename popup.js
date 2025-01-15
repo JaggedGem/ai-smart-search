@@ -1,27 +1,27 @@
 document.addEventListener('DOMContentLoaded', function () {
-  const storage = chrome.storage || browser.storage;
+  const storage = chrome.storage.local;
 
   // Extension Toggle
   const extensionToggle = document.getElementById('extensionToggle');
-  storage.local.get('enabled', function (data) {
+  storage.get('enabled', function (data) {
     extensionToggle.checked = data.enabled !== false;
   });
   extensionToggle.addEventListener('change', function () {
-    storage.local.set({ enabled: extensionToggle.checked });
+    storage.set({ enabled: extensionToggle.checked });
   });
 
   // Multi-tab Toggle
   const multiTabToggle = document.getElementById('multiTabToggle');
-  storage.local.get('multiTab', function (data) {
+  storage.get('multiTab', function (data) {
     multiTabToggle.checked = data.multiTab === true;
   });
   multiTabToggle.addEventListener('change', function () {
-    storage.local.set({ multiTab: multiTabToggle.checked });
+    storage.set({ multiTab: multiTabToggle.checked });
   });
 
   // Theme Toggle
   const themeToggle = document.getElementById('themeToggle');
-  storage.local.get('darkMode', function (data) {
+  storage.get('darkMode', function (data) {
     const isDark = data.darkMode === true;
     themeToggle.checked = isDark;
     document.body.setAttribute('data-theme', isDark ? 'dark' : 'light');
@@ -30,12 +30,12 @@ document.addEventListener('DOMContentLoaded', function () {
   themeToggle.addEventListener('change', function () {
     const isDark = themeToggle.checked;
     document.body.setAttribute('data-theme', isDark ? 'dark' : 'light');
-    storage.local.set({ darkMode: isDark });
+    storage.set({ darkMode: isDark });
   });
 
   // Search History
   function updateSearchHistory() {
-    storage.local.get('searchHistory', function (data) {
+    storage.get('searchHistory', function (data) {
       const historyDiv = document.getElementById('searchHistory');
       const history = data.searchHistory || [];
 
@@ -90,7 +90,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Statistics
   function updateStats() {
-    storage.local.get('stats', function (data) {
+    storage.get('stats', function (data) {
       const stats = data.stats || { searches: 0, timesSaved: '0min' };
       document.getElementById('totalSearches').textContent = stats.searches;
       document.getElementById('timesSaved').textContent = stats.timesSaved;
@@ -126,7 +126,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const manageListBtn = document.getElementById('manageListBtn');
 
   function showEditList() {
-    storage.local.get(['whitelist', 'blacklist'], (data) => {
+    storage.get(['whitelist', 'blacklist'], (data) => {
       whitelistInput.value = (data.whitelist || []).join(', ');
       blacklistInput.value = (data.blacklist || []).join(', ');
       editListSection.style.display = 'block';
@@ -138,7 +138,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   manageListBtn.addEventListener('click', () => {
-    storage.local.get(['whitelist', 'blacklist'], (data) => {
+    storage.get(['whitelist', 'blacklist'], (data) => {
       whitelistInput.value = (data.whitelist || []).join(', ');
       blacklistInput.value = (data.blacklist || []).join(', ');
       editListSection.style.display = 'block';
@@ -155,7 +155,7 @@ document.addEventListener('DOMContentLoaded', function () {
       .split(',')
       .map((b) => b.trim().toLowerCase())
       .filter(Boolean);
-    storage.local.set({ whitelist: wList, blacklist: bList }, () => {
+    storage.set({ whitelist: wList, blacklist: bList }, () => {
       showToast('Lists saved');
       hideEditList();
     });

@@ -1,8 +1,7 @@
-require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
 
-const sourceDir = process.env.SOURCE_DIR || '.';
+const sourceDir = '.';
 const distDir = 'dist';
 
 // Create dist directory if it doesn't exist
@@ -11,7 +10,14 @@ if (!fs.existsSync(distDir)) {
 }
 
 // Files to copy
-const filesToCopy = ['manifest.json', 'background.js', 'content.js', 'popup.html', 'popup.js'];
+const filesToCopy = [
+  'manifest.json',
+  'background.js',
+  'content.js',
+  'popup.html',
+  'popup.js',
+  'rules.json',
+];
 
 // Copy files
 filesToCopy.forEach((file) => {

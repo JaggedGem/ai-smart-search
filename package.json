@@ -1,38 +1,23 @@
 {
   "name": "ai-smart-search",
   "version": "2.0.0",
-  "description": "Firefox extension that redirects questions to Perplexity AI",
+  "description": "Chrome extension that redirects questions to Perplexity AI",
   "scripts": {
-    "build": "npm run lint && npm run clean && npm run copy && npm run zip",
-    "dev": "web-ext run --firefox=\"PATH_TO_YOUR_FIREFOX\" --source-dir=./",
-    "dev:prod": "web-ext run --firefox=\"PATH_TO_YOUR_FIREFOX\" --source-dir=./",
-    "lint": "web-ext lint && eslint .",
+    "build": "npm run lint && npm run clean && npm run copy-chrome && npm run package",
+    "dev": "npm run copy-chrome && web-ext run --target=chromium --source-dir=./dist/",
+    "lint": "eslint . --fix",
     "clean": "rimraf web-ext-artifacts dist/",
-    "copy": "node scripts/copy.js",
-    "zip": "web-ext build -s dist/",
-    "watch": "web-ext run --source-dir=./",
+    "copy-chrome": "node scripts/copy-chrome.js",
+    "package": "web-ext build -s dist/ -a web-ext-artifacts -o",
+    "watch": "nodemon --watch src --ext js,json,html,css --exec \"npm run build\"",
     "format": "prettier --write ."
   },
   "devDependencies": {
     "eslint": "^8.50.0",
     "eslint-config-prettier": "^9.0.0",
+    "nodemon": "^3.1.9",
     "prettier": "^3.0.3",
     "rimraf": "^5.0.1",
     "web-ext": "^8.3.0"
-  },
-  "webExt": {
-    "sourceDir": ".",
-    "artifactsDir": "web-ext-artifacts",
-    "build": {
-      "overwriteDest": true
-    },
-    "run": {
-      "startUrl": [
-        "https://www.google.com"
-      ],
-      "firefox": "firefox-developer-edition",
-      "browserConsole": false,
-      "devtools": false
-    }
   }
 }

@@ -1,4 +1,5 @@
-const storage = chrome.storage || browser.storage;
+const storage = chrome.storage.local;
+
 const nicheKeywords = [
   'how',
   'what',
@@ -18,7 +19,6 @@ const nicheKeywords = [
   '?',
 ];
 
-// Add at the top with other constants
 const SEARCH_ENGINES = {
   perplexity: {
     name: 'Perplexity AI',
@@ -27,18 +27,15 @@ const SEARCH_ENGINES = {
   },
   chatgpt: {
     name: 'ChatGPT',
-    // Just go to main page since we can't directly input query
     url: () => 'https://chat.openai.com',
     domain: 'chat.openai.com',
   },
 };
 
-// Replace the constant with a function
 function calculateTimeSaved(query) {
-  const baseTime = 30; // base seconds saved
+  const baseTime = 30;
   const wordsCount = query.trim().split(/\s+/).length;
   const specialChars = (query.match(/[?!]/g) || []).length;
-
   return baseTime + wordsCount * 5 + specialChars * 2;
 }
 
@@ -51,19 +48,19 @@ function formatQuery(query) {
   return query.trim().replace(/\s+/g, '+');
 }
 
-// Add function to copy text to clipboard
-function copyToClipboard(text) {
-  navigator.clipboard.writeText(text).catch((err) => {
+async function copyToClipboard(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch (err) {
     console.error('Failed to copy text: ', err);
-  });
+  }
 }
 
-// Update openPerplexityTabs to be more generic
 async function openSearchTabs(query, engine, multiTab) {
   const urls = [SEARCH_ENGINES[engine].url(query)];
 
   if (engine === 'chatgpt') {
-    copyToClipboard(query);
+    await copyToClipboard(query);
   }
 
   if (multiTab) {
@@ -75,15 +72,11 @@ async function openSearchTabs(query, engine, multiTab) {
   }
 }
 
-// Add this function to background.js
 function trackSearchHistory(query, initialUrl) {
-  // Listen for URL updates in the tab where we redirected
   chrome.tabs.onUpdated.addListener(function listener(tabId, changeInfo, tab) {
     if (changeInfo.url && changeInfo.url.includes('perplexity.ai/search/')) {
-      // If this is the final URL (not /new/ or /pending/)
       if (!changeInfo.url.includes('/new/') && !changeInfo.url.includes('/pending/')) {
-        // Store in history
-        storage.local.get('searchHistory', function (data) {
+        storage.get('searchHistory', function (data) {
           const history = data.searchHistory || [];
           history.push({
             query: query,
@@ -91,147 +84,157 @@ function trackSearchHistory(query, initialUrl) {
             timestamp: Date.now(),
           });
 
-          // Keep only last 50 searches
           if (history.length > 50) {
             history.shift();
           }
 
-          storage.local.set({ searchHistory: history });
+          storage.set({ searchHistory: history });
         });
 
-        // Remove the listener
         chrome.tabs.onUpdated.removeListener(listener);
       }
     }
   });
 }
 
-// Update the onBeforeRequest listener to track stats when redirecting
-chrome.webRequest.onBeforeRequest.addListener(
-  function (details) {
-    return new Promise((resolve) => {
-      storage.local.get(
-        ['enabled', 'multiTab', 'stats', 'searchEngine', 'whitelist', 'blacklist'],
-        function (data) {
-          const url = new URL(details.url);
-          const query = url.searchParams.get('q') || url.searchParams.get('query');
-          const escape = url.searchParams.get('escape');
+async function handleSearch(details) {
+  const url = new URL(details.url);
+  const query = url.searchParams.get('q') || url.searchParams.get('query');
+  const escape = url.searchParams.get('escape');
 
-          // Use selected search engine or default to perplexity
-          const engine = data.searchEngine || 'perplexity';
-
-          // Check if extension is enabled
-          if (data.enabled === false) {
-            resolve({});
-            return;
-          }
-
-          // Don't redirect if escape parameter is present
-          if (escape) {
-            resolve({});
-            return;
-          }
-
-          if (query) {
-            const lowerQuery = query.toLowerCase();
-            const inBlacklist = (data.blacklist || []).some((word) => lowerQuery.includes(word));
-            const inWhitelist = (data.whitelist || []).some((word) => lowerQuery.includes(word));
-
-            if (inBlacklist) {
-              resolve({}); // No redirect if blacklisted
-              return;
-            }
-
-            if (isNicheQuery(query) || inWhitelist) {
-              const formattedQuery = formatQuery(query);
-
-              // Track the search history
-              trackSearchHistory(query, SEARCH_ENGINES[engine].url(formattedQuery));
-
-              // Update statistics
-              const stats = data.stats || { searches: 0, timesSaved: '0min', totalSeconds: 0 };
-              stats.searches++;
-
-              // Calculate time saved using the new function
-              stats.totalSeconds = (stats.totalSeconds || 0) + calculateTimeSaved(query);
-              stats.timesSaved = `${Math.floor(stats.totalSeconds / 60)}min`;
-
-              // Save updated stats
-              storage.local.set({ stats });
-
-              if (engine === 'chatgpt') {
-                // For ChatGPT, always open in new tab and copy query to clipboard
-                openSearchTabs(formattedQuery, engine, data.multiTab);
-                resolve({ cancel: true });
-                return;
-              }
-
-              // Handle Perplexity normally
-              const searchUrl = SEARCH_ENGINES[engine].url(formattedQuery);
-              if (data.multiTab) {
-                storage.local.set({
-                  lastRedirect: {
-                    query: query,
-                    timestamp: Date.now(),
-                    engine: engine,
-                    multiTabUsed: true,
-                  },
-                });
-                openSearchTabs(formattedQuery, engine, true);
-                resolve({ cancel: true });
-                return;
-              }
-
-              storage.local.set({
-                lastRedirect: {
-                  query: query,
-                  timestamp: Date.now(),
-                  engine: engine,
-                  multiTabUsed: false,
-                },
-              });
-              resolve({ redirectUrl: searchUrl });
-              return;
-            }
-          }
-          resolve({});
-        }
-      );
-    });
-  },
-  { urls: ['*://www.google.com/search*'] },
-  ['blocking']
-);
-
-// Initialize storage with default values
-storage.local.get(['enabled', 'multiTab', 'stats'], function (data) {
-  if (data.enabled === undefined) {
-    storage.local.set({ enabled: true });
+  if (!query || escape) {
+    return;
   }
-  if (data.multiTab === undefined) {
-    storage.local.set({ multiTab: false });
+
+  const data = await storage.get([
+    'enabled',
+    'multiTab',
+    'stats',
+    'searchEngine',
+    'whitelist',
+    'blacklist',
+  ]);
+
+  // Check if extension is enabled
+  if (data.enabled === false) {
+    return;
   }
-  if (!data.stats) {
-    storage.local.set({
-      stats: {
-        searches: 0,
-        timesSaved: '0min',
-        totalSeconds: 0,
+
+  const lowerQuery = query.toLowerCase();
+  const inBlacklist = (data.blacklist || []).some((word) => lowerQuery.includes(word));
+  const inWhitelist = (data.whitelist || []).some((word) => lowerQuery.includes(word));
+
+  if (inBlacklist) {
+    return;
+  }
+
+  if (isNicheQuery(query) || inWhitelist) {
+    const formattedQuery = formatQuery(query);
+    const engine = data.searchEngine || 'perplexity';
+
+    // Track search history
+    trackSearchHistory(query, SEARCH_ENGINES[engine].url(formattedQuery));
+
+    // Update statistics
+    const stats = data.stats || { searches: 0, timesSaved: '0min', totalSeconds: 0 };
+    stats.searches++;
+    stats.totalSeconds = (stats.totalSeconds || 0) + calculateTimeSaved(query);
+    stats.timesSaved = `${Math.floor(stats.totalSeconds / 60)}min`;
+    await storage.set({ stats });
+
+    // Store last redirect info
+    await storage.set({
+      lastRedirect: {
+        query: query,
+        timestamp: Date.now(),
+        engine: engine,
+        multiTabUsed: data.multiTab,
       },
     });
+
+    if (engine === 'chatgpt') {
+      await openSearchTabs(formattedQuery, engine, data.multiTab);
+      return { cancel: true };
+    }
+
+    // Handle Perplexity redirect
+    const searchUrl = SEARCH_ENGINES[engine].url(formattedQuery);
+    if (data.multiTab) {
+      await openSearchTabs(formattedQuery, engine, true);
+      return { cancel: true };
+    }
+
+    return { redirectUrl: searchUrl };
   }
+}
+
+// Initialize extension on install or update
+chrome.runtime.onInstalled.addListener(() => {
+  storage.get(['enabled', 'multiTab', 'stats', 'whitelist', 'blacklist'], function (data) {
+    const defaults = {
+      enabled: data.enabled ?? true,
+      multiTab: data.multiTab ?? false,
+      stats: data.stats ?? { searches: 0, timesSaved: '0min', totalSeconds: 0 },
+      whitelist: data.whitelist ?? [],
+      blacklist: data.blacklist ?? [],
+    };
+    storage.set(defaults);
+
+    // Set up declarativeNetRequest rules
+    setupRedirectRules();
+  });
 });
 
-// Initialize white/black lists if undefined
-storage.local.get(['whitelist', 'blacklist'], function (data) {
-  if (!data.whitelist) {
-    storage.local.set({ whitelist: [] });
-  }
-  if (!data.blacklist) {
-    storage.local.set({ blacklist: [] });
-  }
-});
+// Set up declarativeNetRequest rules
+async function setupRedirectRules() {
+  await chrome.declarativeNetRequest.updateDynamicRules({
+    removeRuleIds: [1],
+    addRules: [
+      {
+        id: 1,
+        priority: 1,
+        action: {
+          type: 'modifyHeaders',
+          requestHeaders: [
+            {
+              header: 'x-search-redirect',
+              operation: 'set',
+              value: 'true',
+            },
+          ],
+        },
+        condition: {
+          urlFilter: '*://www.google.com/search*',
+          resourceTypes: ['main_frame'],
+        },
+      },
+    ],
+  });
+}
 
+// Listen for search requests
+chrome.webNavigation.onBeforeNavigate.addListener(
+  async (details) => {
+    if (details.url.includes('google.com/search')) {
+      const result = await handleSearch(details);
+      if (result?.redirectUrl) {
+        chrome.tabs.update(details.tabId, { url: result.redirectUrl });
+      } else if (result?.cancel) {
+        chrome.tabs.remove(details.tabId);
+      }
+    }
+  },
+  {
+    url: [
+      {
+        hostContains: 'google.com',
+        pathContains: 'search',
+      },
+    ],
+  }
+);
+
+// Handle messages from content script
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'closePerplexityAndFocusGoogle') {
     const { query } = request;
