@@ -52,8 +52,8 @@ The `package.json` contains several npm scripts for development:
 {
   "scripts": {
     "build": "npm run lint && npm run clean && npm run copy && npm run zip",
-    "dev": "web-ext run --firefox=\"C:/Program Files/Firefox Developer Edition/firefox.exe\" --source-dir=./",
-    "dev:prod": "web-ext run --firefox=\"C:/Program Files/Zen Browser/zen.exe\" --source-dir=./",
+    "dev": "web-ext run --firefox=\"PATH_TO_YOUR_FIREFOX\" --source-dir=./",
+    "dev:prod": "web-ext run --firefox=\"PATH_TO_YOUR_FIREFOX\" --source-dir=./",
     "lint": "web-ext lint && eslint .",
     "clean": "rimraf web-ext-artifacts dist/",
     "copy": "node scripts/copy.js",
