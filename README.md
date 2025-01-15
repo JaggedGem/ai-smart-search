@@ -26,7 +26,9 @@ Transform your search experience with AI-powered answers. Smart Search automatic
 [![Install for Firefox](https://img.shields.io/badge/Install%20for-Firefox-FF7139?style=for-the-badge&logo=firefox-browser&logoColor=white)](https://addons.mozilla.org/en-US/firefox/addon/ai-smart-search/)
 
 ### Chrome
-![Coming Soon](https://img.shields.io/badge/Coming-Soon-yellow?style=for-the-badge&logo=google-chrome&logoColor=white)
+![Coming Soon](https://img.shields.io/badge/Coming-Soon-yellow?style=for-the-badge&logo=google-chrome&logoColor=white) 
+
+Now available check the [Announcements](https://github.com/JaggedGem/ai-smart-search/discussions/2) for more info!
 
 ## 💻 Development
 
