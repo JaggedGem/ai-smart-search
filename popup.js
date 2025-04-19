@@ -10,6 +10,56 @@ document.addEventListener('DOMContentLoaded', function () {
     storage.local.set({ enabled: extensionToggle.checked });
   });
 
+  // ML Model Toggle
+  const mlToggle = document.getElementById('mlToggle');
+  storage.local.get('mlEnabled', function (data) {
+    mlToggle.checked = data.mlEnabled !== false;
+  });
+  mlToggle.addEventListener('change', function () {
+    storage.local.set({ mlEnabled: mlToggle.checked });
+  });
+
+  // Reset ML Model button
+  document.getElementById('resetMLBtn').addEventListener('click', function() {
+    if (confirm('Are you sure you want to reset the machine learning model? This will erase all training data.')) {
+      chrome.runtime.sendMessage({ action: 'resetML' });
+      showToast('ML model reset');
+      updateMLStats();
+    }
+  });
+
+  // ML Stats update
+  function updateMLStats() {
+    storage.local.get('trainingData', function(data) {
+      const trainingData = data.trainingData || { features: [], labels: [] };
+      document.getElementById('sampleCount').textContent = trainingData.features.length;
+      
+      if (trainingData.features.length < 10) {
+        document.getElementById('trainingStatus').textContent = 'Collecting data';
+      } else if (trainingData.features.length < 50) {
+        document.getElementById('trainingStatus').textContent = 'Basic training';
+      } else if (trainingData.features.length < 100) {
+        document.getElementById('trainingStatus').textContent = 'Learning';
+      } else {
+        document.getElementById('trainingStatus').textContent = 'Fully trained';
+      }
+      
+      console.log('ML Stats updated, sample count:', trainingData.features.length);
+    });
+  }
+  
+  // Update ML stats when popup opens
+  updateMLStats();
+  
+  // Refresh ML stats periodically
+  setInterval(updateMLStats, 2000);
+
+  // Add a refresh button for ML stats
+  document.getElementById('refreshMLBtn').addEventListener('click', function() {
+    updateMLStats();
+    showToast('Statistics refreshed');
+  });
+
   // Multi-tab Toggle
   const multiTabToggle = document.getElementById('multiTabToggle');
   storage.local.get('multiTab', function (data) {

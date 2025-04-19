@@ -1,6 +1,9 @@
 // Add this at the top of content.js
 const storage = chrome.storage || browser.storage;
 
+// Store feedback timer to prevent multiple timers
+let feedbackTimer = null;
+
 // Function to create Google search button
 function createGoogleButton(query) {
   const buttonContainer = document.createElement('div');
@@ -19,12 +22,85 @@ function createGoogleButton(query) {
   `;
 
   buttonContainer.addEventListener('click', () => {
+    // Track this as negative feedback for the ML model
+    // The user was redirected but decided to use Google instead
+    chrome.runtime.sendMessage({
+      action: 'mlFeedback',
+      query: query,
+      shouldRedirect: false,
+      feedbackId: `negative_${Date.now()}`
+    });
+    
     // Use escape parameter to prevent redirect
     window.location.href = `https://www.google.com/search?q=${encodeURIComponent(query)}&escape=true`;
   });
 
   buttonContainer.appendChild(googleSvg);
   return buttonContainer;
+}
+
+// Add a function to track that the user is actually using the AI results
+// This is positive feedback that the redirection was useful
+function trackSuccessfulUse() {
+  const url = window.location.href;
+  if (!url.includes('perplexity.ai')) return;
+  
+  console.log('Checking for successful use...');
+  
+  // Clear any existing feedback timer
+  if (feedbackTimer) {
+    console.log('Clearing existing feedback timer');
+    clearTimeout(feedbackTimer);
+    feedbackTimer = null;
+  }
+  
+  storage.local.get(['lastRedirect', 'feedbackSent'], data => {
+    const { lastRedirect, feedbackSent } = data;
+    console.log('lastRedirect:', lastRedirect);
+    console.log('feedbackSent:', feedbackSent);
+    
+    // Only send feedback once per session and if we haven't already sent it
+    // Check if feedback was already sent for this specific query
+    const feedbackKey = lastRedirect ? `feedback_${lastRedirect.query.replace(/\s+/g, '_')}` : null;
+    
+    if (lastRedirect && 
+        !feedbackSent && 
+        lastRedirect.timestamp > Date.now() - 300000) { // within 5 minutes
+      
+      // Check if we've already sent feedback for this query
+      storage.local.get(feedbackKey, (feedbackData) => {
+        if (feedbackData[feedbackKey]) {
+          console.log(`Feedback already sent for query: ${lastRedirect.query}`);
+          return;
+        }
+        
+        console.log('Setting up positive feedback timer...');
+        // Track user staying on page for more than 10 seconds as positive feedback
+        feedbackTimer = setTimeout(() => {
+          // Generate unique feedback ID
+          const feedbackId = `positive_${Date.now()}`;
+          console.log('Sending positive feedback for query:', lastRedirect.query);
+          
+          chrome.runtime.sendMessage({
+            action: 'mlFeedback',
+            query: lastRedirect.query,
+            shouldRedirect: true,
+            feedbackId: feedbackId
+          }, response => {
+            console.log('Feedback response:', response);
+            
+            // Mark feedback as sent for this specific query
+            const storageUpdate = { feedbackSent: true };
+            storageUpdate[feedbackKey] = true;
+            storage.local.set(storageUpdate);
+            
+            // Clear redirect data to prevent further feedback
+            storage.local.remove('lastRedirect');
+          });
+        }, 10000); // 10 seconds
+      });
+    }
+  });
 }
 
 // Update the checkAndReplaceButton function
@@ -40,6 +116,8 @@ async function checkAndReplaceButton() {
     const paramQuery = new URL(window.location.href).searchParams.get('q') || '';
     const usedQuery = lastRedirect && lastRedirect.query ? lastRedirect.query : paramQuery;
 
+    console.log('Used query for button:', usedQuery);
+
     // Always create the Google button on perplexity.ai
     const questionButton = document.querySelector('.fa-question');
     console.log('Found question button:', questionButton); // For debugging
@@ -47,10 +125,12 @@ async function checkAndReplaceButton() {
     if (questionButton) {
       const container = questionButton.closest('.flex.items-center');
       if (container) {
+        console.log('Found container, creating Google button');
         // Replace it with our Google button
         const googleButton = createGoogleButton(usedQuery);
         if (lastRedirect?.multiTabUsed) {
           googleButton.addEventListener('click', () => {
+            console.log('Google button clicked (multi-tab mode)');
             chrome.runtime.sendMessage({
               action: 'closePerplexityAndFocusGoogle',
               query: encodeURIComponent(usedQuery),
@@ -58,15 +138,23 @@ async function checkAndReplaceButton() {
           });
         }
         container.parentNode.replaceChild(googleButton, container);
-
-        // Clear the redirect data
-        storage.local.remove('lastRedirect');
       }
     }
+    
+    // Track that user viewed this page (positive feedback)
+    trackSuccessfulUse();
   } catch (error) {
     console.error('Error:', error); // For debugging
   }
 }
+
+// Clean up feedback timer when page unloads
+window.addEventListener('beforeunload', () => {
+  if (feedbackTimer) {
+    clearTimeout(feedbackTimer);
+    feedbackTimer = null;
+  }
+});
 
 // Run when page loads
 checkAndReplaceButton();
